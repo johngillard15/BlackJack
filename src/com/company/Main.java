@@ -2,19 +2,14 @@ package com.company;
 
 import com.card.Card;
 import com.card.Deck;
+import com.card.StandardDeck;
+import com.game.BlackJack;
 
 public class Main {
 
     public static void main(String[] args) {
-	    // write your code here
-        Deck deck = new Deck();
+        BlackJack blackJack = new BlackJack();
 
-        for(int i = 0; i < 5; i++) {
-            int suitIndex = (int) (Math.random() * Card.SUITS.length);
-            int valueIndex = (int) (Math.random() * Card.VALUES.length);
-            deck.pile.add(new Card(Card.SUITS[suitIndex], Card.VALUES[valueIndex]));
-        }
-
-        System.out.println(deck);
+        blackJack.play();
     }
 }
