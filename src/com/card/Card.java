@@ -1,8 +1,8 @@
 package com.card;
 
 public class Card {
-    public String suit;
-    public String value;
+    public final String suit;
+    public final String value;
 
     public Card(String suit, String value){
         this.suit = suit;
