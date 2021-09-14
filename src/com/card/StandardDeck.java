@@ -9,6 +9,7 @@ public class StandardDeck implements Deck {
     public static final String[] VALUES = { // TODO: use these as integers and grab strings separately (or maybe just use index as numerical value...)
             "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"
     };
+    List<Card> pile = new ArrayList<>();
 
     public StandardDeck(){
         for(String suit : SUITS){
