@@ -1,16 +1,15 @@
 package com.game;
 
-import com.card.Card;
+import com.card.CheaterStandardDeck;
 import com.card.Deck;
-import com.card.StandardDeck;
 
 public class BlackJack {
-    protected final Deck deck;
+    protected final Deck deck; // TODO: multiple decks in blackjack?
 
     public BlackJack(){
-        deck = new StandardDeck();
+        deck = new CheaterStandardDeck();
 
-        System.out.printf("Deck size: %d cards\n", ((StandardDeck) deck).pile.size());
+        System.out.printf("Deck size: %d cards\n", deck.pile.size());
         System.out.println(deck);
 
         deck.shuffle();
