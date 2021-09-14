@@ -19,6 +19,7 @@ public class BlackJack {
         System.out.println();
 
         for (int i = 0; i < 5; i++) {
+            System.out.printf("Deck size: %d cards\n", deck.pile.size());
             System.out.println(deck.deal());
         }
     }
