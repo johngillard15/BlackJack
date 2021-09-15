@@ -4,6 +4,7 @@ import com.actors.Dealer;
 import com.actors.PlayerWithCards;
 import com.actors.BlackJackPlayer;
 import com.card.Card;
+import com.card.CheaterStandardDeck;
 import com.card.Deck;
 import com.card.StandardDeck;
 import com.utilities.ANSI;
@@ -22,7 +23,7 @@ public class BlackJack extends Game{
     public BlackJack(){
         super(1, 4);
 
-        deck = new StandardDeck();
+        deck = new CheaterStandardDeck();
         deck.shuffle();
 
         setup();
@@ -145,10 +146,10 @@ public class BlackJack extends Game{
         player.setBalance(player.getBalance() + initialBet);
         player.setBet(initialBet * 2);
 
-        System.out.printf("new balance: %,d\n", player.getBalance());
+        System.out.printf("\nnew balance: %,d\n", player.getBalance());
         System.out.printf("%-12s %,d\n", "new bet:", player.getBet());
 
-        hit(player);
+        if(!hit(player)) showHand(player);
     }
 
     private void draw(PlayerWithCards player){
@@ -158,8 +159,16 @@ public class BlackJack extends Game{
     private int getHandValue(PlayerWithCards player){
         int handScore = 0;
 
-        for(Card card : player.hand.cards)
+        int aces = 0;
+        for(Card card : player.hand.cards) {
+            if(card.value.equals("Ace")) ++aces;
             handScore += getValue(card);
+        }
+
+        while(aces > 0 && !(handScore + 10 > 21)){
+            handScore += 10;
+            --aces;
+        }
 
         return handScore;
     }
