@@ -81,17 +81,30 @@ public class BlackJack extends Game{
         System.out.println("? of ?"); // TODO: dealer's face down card, get fancy cards working and make a face down card
         System.out.printf("Hand score: %s + ?\n", getValue(dealer.hand.cards.get(0)));
 
+        boolean hitOnce = false;
         boolean stand = false;
         do{
             showHand(activePlayer);
 
             System.out.printf("\ncurrent balance: $%,d\n", ((BlackJackPlayer)activePlayer).getBalance());
             System.out.printf("%16s $%,d\n", "this bet:", ((BlackJackPlayer)activePlayer).getBet());
-            System.out.println("\nWould you like to (h)it, (s)tand, or (d)ouble your bet?");
-            System.out.print("̲hit or ̲stand "); // ̲
-            switch (Input.getString("h", "s", "d").toLowerCase()) {
+
+            String choice;
+            if(hitOnce){
+                System.out.println("\nWould you like to (h)it or (s)tand?");
+                System.out.print("̲hit or ̲stand "); // ̲
+                choice = Input.getString("h", "s").toLowerCase();
+            }
+            else{
+                System.out.println("\nWould you like to (h)it, (s)tand, or (d)ouble your bet?");
+                System.out.print("̲hit, ̲stand, ̲double "); // ̲
+                choice = Input.getString("h", "s", "d").toLowerCase();
+            }
+
+            switch (choice) {
                 case "h" -> {
                     System.out.println("Hit me!");
+                    hitOnce = true;
                     stand = hit((BlackJackPlayer) activePlayer);
                 }
                 case "s" -> {
