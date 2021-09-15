@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class CheaterStandardDeck extends StandardDeck {
 
     @Override
-    public Card deal(){
+    public Card draw(){
         Card cheatCard = null;
 
         boolean inDeck = false;

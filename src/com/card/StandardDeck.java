@@ -3,7 +3,7 @@ package com.card;
 import java.util.*;
 
 public class StandardDeck implements Deck {
-    public static final String[] SUITS = {
+    public static final String[] SUITS = { // TODO: enums for suit and value
             "Clubs", "Diamonds", "Hearts", "Spades"
     };
     public static final String[] VALUES = { // TODO: use these as integers and grab strings separately (or maybe just use index as numerical value...)
@@ -22,7 +22,7 @@ public class StandardDeck implements Deck {
         Collections.shuffle(pile);
     }
 
-    public Card deal(){
+    public Card draw(){
         return pile.remove(pile.size() - 1);
     }
 

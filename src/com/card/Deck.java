@@ -6,6 +6,6 @@ import java.util.List;
 public interface Deck {
 
     void shuffle();
-    Card deal();
+    Card draw();
     void discard(Card card);
 }
