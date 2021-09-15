@@ -11,6 +11,10 @@ public class CheaterStandardDeck extends StandardDeck {
 
     @Override
     public Card draw(){
+        return super.draw();
+    }
+
+    public Card cheatDraw(){
         Card cheatCard = null;
 
         boolean inDeck = false;
@@ -23,7 +27,7 @@ public class CheaterStandardDeck extends StandardDeck {
             System.out.println("\nof...\n");
 
             UI.listerator(SUITS); // TODO: fix spacing in output
-            System.out.println("Suit:");
+            System.out.print("Suit:\n");
             int suitIndex = Input.getInt(1, SUITS.length) - 1;
             System.out.println(SUITS[suitIndex]);
 
