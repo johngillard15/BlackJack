@@ -1,5 +1,9 @@
 package com.utilities;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
 public class UI {
 
     /**
@@ -47,7 +51,7 @@ public class UI {
             }
             case 4 -> { // bullet
                 for(String option : listElements)
-                    list.append(String.format("%s• %s\n", subLevelIndent, option));
+                    list.append(String.format("%sâ€¢ %s\n", subLevelIndent, option));
             }
 
             default -> throw new IllegalStateException("Invalid list type: " + listType);
@@ -69,5 +73,21 @@ public class UI {
         char letter = (char)((int)'A' + letterNum);
 
         return (nextLetter == 0 ? "" : getLetterValue(nextLetter - 1)) + letter;
+    }
+
+    public static void showSideBySide(String... strings){
+        List<Scanner> scannerList = new ArrayList<>();
+        for(String string : strings)
+            scannerList.add(new Scanner(string));
+
+        while(scannerList.get(0).hasNextLine()){
+            StringBuilder line = new StringBuilder();
+            for(Scanner scanner : scannerList)
+                line.append(scanner.nextLine()).append(" ");
+            System.out.printf("%s\n", line);
+        }
+
+        for(Scanner scanner : scannerList)
+            scanner.close();
     }
 }

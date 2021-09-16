@@ -1,5 +1,7 @@
 package com.card;
 
+import com.utilities.ANSI;
+
 import java.util.*;
 
 public class StandardDeck implements Deck {
@@ -42,6 +44,61 @@ public class StandardDeck implements Deck {
             return Arrays.asList(VALUES).indexOf(cardA.value) - Arrays.asList(VALUES).indexOf(cardB.value);
         }
     }
+
+    public static String getBackCard(){
+        return """
+                ╭─────────╮
+                │╠╬╬╬╬╬╬╬╣│
+                │╠╬╬╬╬╬╬╬╣│
+                │╠╬╬╬╬╬╬╬╣│
+                │╠╬╬╬╬╬╬╬╣│
+                │╠╬╬╬╬╬╬╬╣│
+                ╰─────────╯""";
+    }
+
+    public static String getCardGUI(Card card){
+        String formattedCard =
+                """
+                ╭─────────╮
+                │%s       │
+                │         │
+                │    %s   │
+                │         │
+                │       %s│
+                ╰─────────╯""";
+
+        String suitFace = switch(card.suit){
+            case "Clubs" -> "♣";
+            case "Diamonds" -> "♦";
+            case "Hearts" -> "♥";
+            case "Spades" -> "♠";
+            default -> throw new IllegalStateException("Unexpected suit: " + card.suit);
+        } + "   ";
+
+        String valueFace = switch(card.value){
+            case "Ace" -> "A";
+            case "Jack" -> "J";
+            case "Queen" -> "Q";
+            case "King" -> "K";
+            default -> card.value;
+        };
+
+        String top = valueFace, bot = valueFace;
+
+        if(!card.value.equals("10")){
+            top = valueFace + " ";
+            bot = " " + valueFace;
+        }
+
+//        if(card.suit.equals("Hearts") || card.suit.equals("Diamonds")){
+//            suitFace = ANSI.RED + suitFace + ANSI.RESET;
+//            top = ANSI.RED + top + ANSI.RESET;
+//            bot = ANSI.RED + bot + ANSI.RESET;
+//        }
+
+        return String.format(formattedCard, top, suitFace, bot);
+    }
+
 
     @Override
     public String toString() {

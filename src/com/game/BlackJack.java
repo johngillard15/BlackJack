@@ -3,13 +3,11 @@ package com.game;
 import com.actors.Dealer;
 import com.actors.PlayerWithCards;
 import com.actors.BlackJackPlayer;
-import com.card.Card;
-import com.card.CheaterStandardDeck;
-import com.card.Deck;
-import com.card.TestDeck;
+import com.card.*;
 import com.utilities.ANSI;
 import com.utilities.CLI;
 import com.utilities.Input;
+import com.utilities.UI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.9.1
+ * @version 0.10.0
  */
 
 public class BlackJack extends Game{
@@ -52,6 +50,40 @@ public class BlackJack extends Game{
 
             players.add(new BlackJackPlayer(name));
         }while(players.size() < numPlayers);
+    }
+
+    private void draw(PlayerWithCards player){
+        player.hand.addCard(deck.draw());
+    }
+
+    private void draw(PlayerWithCards player, int count){
+        for(int i = 0; i < count; i++)
+            draw(player);
+    }
+
+    private int getHandValue(PlayerWithCards player){
+        int handScore = 0;
+
+        int aces = 0;
+        for(Card card : player.hand.cards) {
+            if(card.value.equals("Ace")) ++aces;
+            handScore += getValue(card);
+        }
+
+        while(aces > 0 && !(handScore + 10 > 21)){
+            handScore += 10;
+            --aces;
+        }
+
+        return handScore;
+    }
+
+    public static int getValue(Card card){
+        return switch(card.value){
+            case "Ace" -> 1;
+            case "Jack", "Queen", "King" -> 10;
+            default -> Integer.parseInt(card.value);
+        };
     }
 
     @Override
@@ -101,8 +133,7 @@ public class BlackJack extends Game{
         placeBet((BlackJackPlayer) activePlayer);
 
         System.out.println("\nDealer:"); // TODO: end round if dealer starts with 21
-        System.out.println(dealer.hand.cards.get(0));
-        System.out.println("? of ?"); // TODO: dealer's face down card, get fancy cards working and make a face down card
+        UI.showSideBySide(StandardDeck.getCardGUI(dealer.hand.cards.get(0)), StandardDeck.getBackCard());
         System.out.printf("Hand score: %s + ?\n", getValue(dealer.hand.cards.get(0)));
 
         boolean hitOnce = false;
@@ -200,8 +231,7 @@ public class BlackJack extends Game{
                 player.name, player.name.charAt(player.name.length() - 1) == 's' ? "'" : "'s");
 
         player.hand.sortByValue();
-        for(Card card : player.hand.cards)
-            System.out.println(card);
+        CardGUI.showHand(player.hand.cards);
 
         int handScore = getHandValue(player);
         System.out.printf("Hand score: %s\n", handScore == 21 ? ANSI.GREEN + handScore + ANSI.RESET : handScore);
@@ -212,12 +242,13 @@ public class BlackJack extends Game{
             player.hand.addCard(((CheaterStandardDeck) deck).cheatDraw());
             iNeedHelp = false;
         }
-        else
+        else{
+            System.out.printf("\n%s draws...", player.name);
             draw(player);
+        }
 
-        Card newCard = player.hand.getCard(player.hand.cards.size() - 1);
-        System.out.printf("\n%s drew a%s %s\n",
-                player.name, (newCard.value.equals("Ace") || newCard.value.equals("8") ? "n" : ""), newCard);
+        System.out.println("\nNew card:");
+        CardGUI.showCard(player.hand.getCard(player.hand.cards.size() - 1));
 
         if(getHandValue(player) > 21){
             showHand(player);
@@ -228,40 +259,6 @@ public class BlackJack extends Game{
         }
 
         return false;
-    }
-
-    private void draw(PlayerWithCards player){
-        player.hand.addCard(deck.draw());
-    }
-
-    private void draw(PlayerWithCards player, int count){
-        for(int i = 0; i < count; i++)
-            draw(player);
-    }
-
-    private int getHandValue(PlayerWithCards player){
-        int handScore = 0;
-
-        int aces = 0;
-        for(Card card : player.hand.cards) {
-            if(card.value.equals("Ace")) ++aces;
-            handScore += getValue(card);
-        }
-
-        while(aces > 0 && !(handScore + 10 > 21)){
-            handScore += 10;
-            --aces;
-        }
-
-        return handScore;
-    }
-
-    public static int getValue(Card card){
-        return switch(card.value){
-            case "Ace" -> 1;
-            case "Jack", "Queen", "King" -> 10;
-            default -> Integer.parseInt(card.value);
-        };
     }
 
     private void doubleDown(BlackJackPlayer player){
@@ -309,21 +306,6 @@ public class BlackJack extends Game{
         }
     }
 
-    private void leaveTable(BlackJackPlayer player){
-        if(player.getBalance() >= 0)
-            System.out.printf("\n%s has left the table with $%,d.\n", player.name, player.getBalance());
-        else if(player.getBalance() <= -10_000)
-            System.out.printf("\n%s is off to remortgage their house.\n", player.name);
-        else
-            System.out.printf("\n%s owes the casino $%,d. They'll be well taken care of in the back room.\n",
-                    player.name, -player.getBalance());
-
-        CLI.pause();
-
-        players.remove(player);
-        playerLeft = true;
-    }
-
     private void dealerTurn(){
         CLI.cls();
         System.out.println("- Dealer's turn -");
@@ -332,9 +314,10 @@ public class BlackJack extends Game{
         boolean standing = false;
         do{
             if(getHandValue(dealer) >= 17) {
-                if(getHandValue(dealer) < 21)
+                if(getHandValue(dealer) < 21) {
                     System.out.println("Dealer stands.");
-                CLI.pause();
+                    CLI.pause();
+                }
 
                 standing = true;
             }
@@ -380,5 +363,20 @@ public class BlackJack extends Game{
         }
 
         CLI.pause();
+    }
+
+    private void leaveTable(BlackJackPlayer player){
+        if(player.getBalance() >= 0)
+            System.out.printf("\n%s has left the table with $%,d.\n", player.name, player.getBalance());
+        else if(player.getBalance() <= -10_000)
+            System.out.printf("\n%s is off to remortgage their house.\n", player.name);
+        else
+            System.out.printf("\n%s owes the casino $%,d. They'll be well taken care of in the back room.\n",
+                    player.name, -player.getBalance());
+
+        CLI.pause();
+
+        players.remove(player);
+        playerLeft = true;
     }
 }

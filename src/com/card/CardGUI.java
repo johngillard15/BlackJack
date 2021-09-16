@@ -6,13 +6,13 @@ import java.util.Scanner;
 
 public class CardGUI {
     public static void showCard(Card card){
-        System.out.println(card.getCardGUI());
+        System.out.println(StandardDeck.getCardGUI(card));
     }
 
     public static void showHand(List<Card> hand){
         List<Scanner> scannerList = new ArrayList<>();
         for(Card card : hand)
-            scannerList.add(new Scanner(card.getCardGUI()));
+            scannerList.add(new Scanner(StandardDeck.getCardGUI(card)));
 
         while(scannerList.get(0).hasNextLine()){
             StringBuilder line = new StringBuilder();
