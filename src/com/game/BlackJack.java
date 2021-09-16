@@ -37,7 +37,7 @@ public class BlackJack extends Game{
     public BlackJack(){
         super(1, 4);
 
-        deck = new TestDeck();
+        deck = new CheaterStandardDeck();
         deck.shuffle();
 
         setup();
