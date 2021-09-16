@@ -3,6 +3,7 @@ package com.actors;
 public class BlackJackPlayer extends PlayerWithCards {
     private int balance; // TODO: maybe Gambling interface/class?
     private int bet = 0;
+    private int bonus = 0;
 
     public BlackJackPlayer(String name){
         super(name);
@@ -28,6 +29,27 @@ public class BlackJackPlayer extends PlayerWithCards {
 
     public void setBet(int bet) {
         this.bet = bet;
+    }
+
+    public void wonBet(){
+        balance += bet + bonus;
+        bet = 0;
+    }
+
+    public void pushed(){
+        bet = 0;
+    }
+
+    public void lostBet(){
         balance -= bet;
+        bet = 0;
+    }
+
+    public int getBonus(){
+        return bonus;
+    }
+
+    public void setBonus(int bonus){
+        this.bonus += bonus;
     }
 }
