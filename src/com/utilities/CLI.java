@@ -25,7 +25,7 @@ public class CLI {
      * <p>Uses Scanner to wait for user input to continue program execution.</p>
      */
     public static void pause(){
-        System.out.println("Press enter to continue...");
+        System.out.println("\nPress enter to continue...");
         scan.nextLine();
     }
 }

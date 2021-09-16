@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.9.0
+ * @version 0.9.1
  */
 
 public class BlackJack extends Game{
