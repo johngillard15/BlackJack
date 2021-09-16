@@ -33,7 +33,7 @@ public class BlackJackPlayer extends PlayerWithCards {
 
     public void wonBet(){
         balance += bet + bonus;
-        bet = 0;
+        bet = bonus = 0;
     }
 
     public void pushed(){
@@ -42,7 +42,7 @@ public class BlackJackPlayer extends PlayerWithCards {
 
     public void lostBet(){
         balance -= bet;
-        bet = 0;
+        bet = bonus = 0;
     }
 
     public int getBonus(){
