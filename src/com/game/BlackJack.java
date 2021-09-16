@@ -21,10 +21,10 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.10.0
+ * @version 0.10.1
  */
 
-public class BlackJack extends Game{
+public class BlackJack extends Game{ // TODO: fix the extra pauses (after a double then bust)
     private final Deck deck; // TODO: multiple decks in blackjack? (new Blackjack Deck class maybe)
     // TODO: ask for number of decks
     private final List<BlackJackPlayer> players = new ArrayList<>();
@@ -59,6 +59,10 @@ public class BlackJack extends Game{
     private void draw(PlayerWithCards player, int count){
         for(int i = 0; i < count; i++)
             draw(player);
+    }
+
+    private void discard(Card card){
+        deck.discard(card);
     }
 
     private int getHandValue(PlayerWithCards player){
@@ -215,13 +219,20 @@ public class BlackJack extends Game{
     }
 
     private void placeBet(BlackJackPlayer player){
-        System.out.println("\nPlace your bet:");
+        int loan = 1_000;
+
+        if(player.getBalance() <= 0) {
+            System.out.print("\nThe casino has graciously lent you $1,000 to spend based on your situation.");
+        }
+        System.out.printf("\nbalance: $%,d %s\n",
+                player.getBalance(), player.getBalance() <= 0 ? "($1,000 loan)" : "");
+        System.out.println("Place your bet:");
 
         int bet;
-        if(player.getBalance() < 0)
-            bet = (Input.getInt(0, -player.getBalance()));
-        else
+        if(player.getBalance() > 0)
             bet = (Input.getInt(0, player.getBalance()));
+        else
+            bet = (Input.getInt(0, loan));
 
         player.setBet(bet);
     }
@@ -270,8 +281,8 @@ public class BlackJack extends Game{
 
         if(!hit(player)) {
             showHand(player);
-            CLI.pause();
         }
+        CLI.pause();
     }
 
     private void blackjack(BlackJackPlayer player){
@@ -290,20 +301,6 @@ public class BlackJack extends Game{
         String formattedBonus = ANSI.GREEN + String.format("$%,d", player.getBonus()) + ANSI.RESET;
         System.out.printf("\nnew bet: $%,d + %s\n", player.getBet(), formattedBonus);
         CLI.pause();
-    }
-
-    private void clearTable(){
-        while(dealer.hand.cards.size() > 0){
-            Card card = dealer.hand.getCard(0);
-            dealer.hand.removeCard(card);
-        }
-
-        for(PlayerWithCards player : players){
-            while(player.hand.cards.size() > 0){
-                Card card = player.hand.getCard(0);
-                player.hand.removeCard(card);
-            }
-        }
     }
 
     private void dealerTurn(){
@@ -338,9 +335,10 @@ public class BlackJack extends Game{
             int bet = player.getBet();
             int bonus = player.getBonus();
             int score = getHandValue(player);
-            boolean fiveCardCharlie = player.hand.cards.size() == 5;
+            boolean busted = score > 21;
+            boolean fiveCardCharlie = player.hand.cards.size() == 5 && !busted;
 
-            boolean winner = score <= 21
+            boolean winner = !busted
                     && (dealerScore > 21
                     || (score > dealerScore || fiveCardCharlie));
 
@@ -365,6 +363,22 @@ public class BlackJack extends Game{
         CLI.pause();
     }
 
+    private void clearTable(){
+        while(dealer.hand.cards.size() > 0){
+            Card card = dealer.hand.getCard(0);
+            dealer.hand.removeCard(card);
+            discard(card);
+        }
+
+        for(PlayerWithCards player : players){
+            while(player.hand.cards.size() > 0){
+                Card card = player.hand.getCard(0);
+                player.hand.removeCard(card);
+                discard(card);
+            }
+        }
+    }
+
     private void leaveTable(BlackJackPlayer player){
         if(player.getBalance() >= 0)
             System.out.printf("\n%s has left the table with $%,d.\n", player.name, player.getBalance());
@@ -375,6 +389,12 @@ public class BlackJack extends Game{
                     player.name, -player.getBalance());
 
         CLI.pause();
+
+        while(player.hand.cards.size() > 0){
+            Card card = player.hand.getCard(0);
+            player.hand.removeCard(card);
+            discard(card);
+        }
 
         players.remove(player);
         playerLeft = true;
