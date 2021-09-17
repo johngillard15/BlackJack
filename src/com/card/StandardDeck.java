@@ -1,22 +1,35 @@
 package com.card;
 
 import com.utilities.ANSI;
+import com.utilities.Input;
 
 import java.util.*;
 
 public class StandardDeck implements Deck {
-    public static final String[] SUITS = { // TODO: enums for suit and value
+    public static final String[] SUITS = {
             "Clubs", "Diamonds", "Hearts", "Spades"
     };
-    public static final String[] VALUES = { // TODO: use these as integers and grab strings separately (or maybe just use index as numerical value...)
+    public static final String[] VALUES = {
             "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"
     };
-    List<Card> pile = new ArrayList<>();
+    protected List<Card> pile = new ArrayList<>();
 
     public StandardDeck(){
-        for(String suit : SUITS){
-            for(String value : VALUES)
-                pile.add(new Card(suit, value));
+        System.out.println("How many decks will be used?");
+        System.out.print("decks ");
+        fillDeck(Input.getInt(1, 8));
+    }
+
+    public StandardDeck(int decks){
+        fillDeck(decks);
+    }
+
+    protected void fillDeck(int decks){
+        for(int i = 0; i < decks; i++){
+            for (String suit : SUITS) {
+                for (String value : VALUES)
+                    pile.add(new Card(suit, value));
+            }
         }
     }
 

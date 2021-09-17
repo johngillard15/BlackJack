@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @since 13/8/2021
  * @author John
- * @version 1.2.0
+ * @version 1.2.1
  */
 
 public abstract class Game {
@@ -40,12 +40,25 @@ public abstract class Game {
     }
 
     protected void getPlayers(int numPlayers){
+        List<String> names = new ArrayList<>();
+        boolean validName;
         do{
             System.out.printf("\nPlayer %d, what is your name?\n", players.size() + 1);
             String name = Input.getString();
-            System.out.printf("Hello, %s.\n", name);
 
-            players.add(new PlayerWithCards(name));
+            validName = name.length() > 0 && !names.contains(name);
+
+            if(validName){
+                System.out.printf("Hello, %s.\n", name);
+                players.add(new PlayerWithCards(name));
+                names.add(name);
+            }
+            else{
+                if(name.length() < 1)
+                    System.out.println("Your name must have at least 1 character.");
+                else if(names.contains(name))
+                    System.out.println("Another player already has that name.");
+            }
         }while(players.size() < numPlayers);
     }
 

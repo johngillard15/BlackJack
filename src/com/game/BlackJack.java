@@ -21,13 +21,14 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.10.1
+ * @version 0.11.0
  */
 
-public class BlackJack extends Game{ // TODO: fix the extra pauses (after a double then bust)
+public class BlackJack extends Game { // TODO: fix the extra pauses (after a double then bust)
     private final Deck deck; // TODO: multiple decks in blackjack? (new Blackjack Deck class maybe)
     // TODO: ask for number of decks
     private final List<BlackJackPlayer> players = new ArrayList<>();
+    // TODO: maybe make list of hands here then associate with player
     private final Dealer dealer = new Dealer();
     private boolean iNeedHelp = false;
     private boolean playerLeft = false;
@@ -35,7 +36,7 @@ public class BlackJack extends Game{ // TODO: fix the extra pauses (after a doub
     public BlackJack(){
         super(1, 4);
 
-        deck = new CheaterStandardDeck();
+        deck = new StandardDeck();
         deck.shuffle();
 
         setup();
@@ -43,12 +44,25 @@ public class BlackJack extends Game{ // TODO: fix the extra pauses (after a doub
 
     @Override
     protected void getPlayers(int numPlayers){
+        List<String> names = new ArrayList<>();
+        boolean validName;
         do{
             System.out.printf("\nPlayer %d, what is your name?\n", players.size() + 1);
             String name = Input.getString();
-            System.out.printf("Hello, %s.\n", name);
 
-            players.add(new BlackJackPlayer(name));
+            validName = name.length() > 0 && !names.contains(name);
+
+            if(validName){
+                System.out.printf("Hello, %s.\n", name);
+                players.add(new BlackJackPlayer(name));
+                names.add(name);
+            }
+            else{
+                if(name.length() < 1)
+                    System.out.println("Your name must have at least 1 character.");
+                else if(names.contains(name))
+                    System.out.println("Another player already has that name.");
+            }
         }while(players.size() < numPlayers);
     }
 
@@ -128,19 +142,27 @@ public class BlackJack extends Game{ // TODO: fix the extra pauses (after a doub
 
     @Override
     protected void turn(PlayerWithCards activePlayer){
+        // TODO: make a list of hands for splits and iterate through it each turn
         CLI.cls();
         String name = activePlayer.name;
         System.out.printf("- %s%s turn -\n",
                 name, name.charAt(name.length() - 1) == 's' ? "'" : "'s");
         CLI.pause();
 
-        placeBet((BlackJackPlayer) activePlayer);
+        System.out.println("Would you like to place a (b)et or leave the (t)able?");
+        System.out.print("̲bet or ̲leave ");
+        switch(Input.getString("b", "l").toLowerCase()){
+            case "b" -> placeBet((BlackJackPlayer) activePlayer);
+            case "l" -> {
+                leaveTable((BlackJackPlayer) activePlayer);
+                return;
+            }
+        }
 
         System.out.println("\nDealer:"); // TODO: end round if dealer starts with 21
         UI.showSideBySide(StandardDeck.getCardGUI(dealer.hand.cards.get(0)), StandardDeck.getBackCard());
         System.out.printf("Hand score: %s + ?\n", getValue(dealer.hand.cards.get(0)));
 
-        boolean hitOnce = false;
         boolean standing = false;
         do{
             showHand(activePlayer);
@@ -162,7 +184,7 @@ public class BlackJack extends Game{ // TODO: fix the extra pauses (after a doub
             String choice;
             if(standing)
                 choice = "s";
-            else if(hitOnce){
+            else if(activePlayer.hand.cards.size() == 2){
                 System.out.println("\nWould you like to (h)it, (s)tand, or (l)eave?");
                 System.out.print("̲hit, ̲stand, or ̲leave "); // ̲
                 choice = Input.getString("h", "s", "psst dealer", "bust", "l").toLowerCase();
@@ -178,7 +200,6 @@ public class BlackJack extends Game{ // TODO: fix the extra pauses (after a doub
                     if(deck instanceof CheaterStandardDeck && choice.equals("psst dealer")) iNeedHelp = true;
 
                     System.out.println("\nHit me!");
-                    hitOnce = true;
                     standing = hit(activePlayer) || getHandValue(activePlayer) == 21;
 
                     if(activePlayer.hand.cards.size() == 5 && getHandValue(activePlayer) <= 21) {
