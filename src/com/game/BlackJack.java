@@ -21,10 +21,10 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.11.1
+ * @version 0.11.2
  */
 
-public class BlackJack extends Game { // TODO: fix the extra pauses (after a double then bust)
+public class BlackJack extends Game {
     private final Deck deck; // TODO: multiple decks in blackjack? (new Blackjack Deck class maybe)
     // TODO: ask for number of decks
     private final List<BlackJackPlayer> players = new ArrayList<>();
@@ -151,7 +151,7 @@ public class BlackJack extends Game { // TODO: fix the extra pauses (after a dou
                 name, name.charAt(name.length() - 1) == 's' ? "'" : "'s");
         CLI.pause();
 
-        System.out.println("Would you like to place a (b)et or leave the (t)able?");
+        System.out.println("Would you like to place a (b)et or (l)eave the table?");
         System.out.print("̲bet or ̲leave ");
         switch(Input.getString("b", "l").toLowerCase()){
             case "b" -> placeBet((BlackJackPlayer) activePlayer);
@@ -291,6 +291,8 @@ public class BlackJack extends Game { // TODO: fix the extra pauses (after a dou
 
             return true;
         }
+        else
+            CLI.pause();
 
         return false;
     }
@@ -302,10 +304,8 @@ public class BlackJack extends Game { // TODO: fix the extra pauses (after a dou
         System.out.printf("new balance: $%,d ($%,d - $%,d)\n",
                 player.getBalance() - player.getBet(), player.getBalance(), player.getBet());
 
-        if(!hit(player)) {
+        if(!hit(player))
             showHand(player);
-        }
-        CLI.pause();
     }
 
     private void blackjack(BlackJackPlayer player){
