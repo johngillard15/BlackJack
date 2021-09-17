@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.11.0
+ * @version 0.11.1
  */
 
 public class BlackJack extends Game { // TODO: fix the extra pauses (after a double then bust)
@@ -36,7 +36,7 @@ public class BlackJack extends Game { // TODO: fix the extra pauses (after a dou
     public BlackJack(){
         super(1, 4);
 
-        deck = new StandardDeck();
+        deck = new CheaterStandardDeck();
         deck.shuffle();
 
         setup();
@@ -67,6 +67,8 @@ public class BlackJack extends Game { // TODO: fix the extra pauses (after a dou
     }
 
     private void draw(PlayerWithCards player){
+        if(deck instanceof TestDeck)
+            System.out.printf("%s draws...", player.name);
         player.hand.addCard(deck.draw());
     }
 
