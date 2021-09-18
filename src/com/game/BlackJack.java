@@ -18,7 +18,7 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.12.0
+ * @version 0.12.1
  */
 
 public class BlackJack extends Game {
@@ -165,14 +165,14 @@ public class BlackJack extends Game {
             if(standing)
                 choice = "s";
             else if(activePlayer.hand.cards.size() == 2){
-                System.out.println("\nWould you like to (h)it, (s)tand, or (l)eave?");
-                System.out.print("̲hit, ̲stand, or ̲leave "); // ̲
-                choice = Input.getString("h", "s", "psst dealer", "bust", "l").toLowerCase();
+                System.out.println("\nWould you like to (h)it or (s)tand?");
+                System.out.print("̲hit, ̲stand "); // ̲
+                choice = Input.getString("h", "s", "psst dealer", "bust").toLowerCase();
             }
             else{
-                System.out.println("\nWould you like to (h)it, (s)tand, (d)ouble down, or (l)eave?");
-                System.out.print("̲hit, ̲stand, ̲double, ̲leave "); // ̲
-                choice = Input.getString("h", "s", "d", "psst dealer", "bust", "l").toLowerCase();
+                System.out.println("\nWould you like to (h)it, (s)tand, or (d)ouble down?");
+                System.out.print("̲hit, ̲stand, ̲double "); // ̲
+                choice = Input.getString("h", "s", "d", "psst dealer", "bust").toLowerCase();
             }
 
             switch (choice) {
@@ -207,11 +207,6 @@ public class BlackJack extends Game {
                 case "bust" -> {
                     System.out.println("\nBust! :)");
                     CLI.pause();
-
-                    standing = true;
-                }
-                case "l" -> {
-                    leaveTable(activePlayer);
 
                     standing = true;
                 }
