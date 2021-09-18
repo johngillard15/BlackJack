@@ -1,16 +1,16 @@
 package com.actors;
 
-public class BlackJackPlayer extends PlayerWithCards {
+public class Player extends Actor {
     private int balance; // TODO: maybe Gambling interface/class?
     private int bet = 0; // TODO: give bet to hand
     private int bonus = 0;
 
-    public BlackJackPlayer(String name){ // TODO: make a list of hands
+    public Player(String name){ // TODO: make a list of hands
         super(name);
         balance = 1_000;
     }
 
-    public BlackJackPlayer(String name, int balance){
+    public Player(String name, int balance){
         super(name);
         this.balance = balance;
     }

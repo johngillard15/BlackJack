@@ -1,5 +1,13 @@
 package com.actors;
 
-public interface Actor {
-    String name = "DEFAULT_NAME";
+import com.card.Hand;
+
+public abstract class Actor {
+    public final String name;
+    public final Hand hand;
+
+    public Actor(String name){
+        this.name = name;
+        hand = new Hand();
+    }
 }

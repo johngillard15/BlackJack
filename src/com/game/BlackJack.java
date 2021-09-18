@@ -1,16 +1,13 @@
 package com.game;
 
+import com.actors.Actor;
 import com.actors.Dealer;
-import com.actors.PlayerWithCards;
-import com.actors.BlackJackPlayer;
+import com.actors.Player;
 import com.card.*;
 import com.utilities.ANSI;
 import com.utilities.CLI;
 import com.utilities.Input;
 import com.utilities.UI;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <h1>BlackJack</h1>
@@ -21,14 +18,15 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.11.2
+ * @version 0.12.0
  */
 
 public class BlackJack extends Game {
     private final Deck deck; // TODO: multiple decks in blackjack? (new Blackjack Deck class maybe)
     // TODO: ask for number of decks
-    private final List<BlackJackPlayer> players = new ArrayList<>();
+    // TODO: maybe make type Actor when betting moves to the hand
     // TODO: maybe make list of hands here then associate with player
+//    private final List<Hand> hands = new ArrayList<>();
     private final Dealer dealer = new Dealer();
     private boolean iNeedHelp = false;
     private boolean playerLeft = false;
@@ -42,37 +40,11 @@ public class BlackJack extends Game {
         setup();
     }
 
-    @Override
-    protected void getPlayers(int numPlayers){
-        List<String> names = new ArrayList<>();
-        boolean validName;
-        do{
-            System.out.printf("\nPlayer %d, what is your name?\n", players.size() + 1);
-            String name = Input.getString();
-
-            validName = name.length() > 0 && !names.contains(name);
-
-            if(validName){
-                System.out.printf("Hello, %s.\n", name);
-                players.add(new BlackJackPlayer(name));
-                names.add(name);
-            }
-            else{
-                if(name.length() < 1)
-                    System.out.println("Your name must have at least 1 character.");
-                else if(names.contains(name))
-                    System.out.println("Another player already has that name.");
-            }
-        }while(players.size() < numPlayers);
-    }
-
-    private void draw(PlayerWithCards player){
-        if(deck instanceof TestDeck)
-            System.out.printf("%s draws...", player.name);
+    private void draw(Actor player){
         player.hand.addCard(deck.draw());
     }
 
-    private void draw(PlayerWithCards player, int count){
+    private void draw(Actor player, int count){
         for(int i = 0; i < count; i++)
             draw(player);
     }
@@ -81,7 +53,7 @@ public class BlackJack extends Game {
         deck.discard(card);
     }
 
-    private int getHandValue(PlayerWithCards player){
+    private int getHandValue(Actor player){
         int handScore = 0;
 
         int aces = 0;
@@ -118,10 +90,16 @@ public class BlackJack extends Game {
 
     @Override
     protected void round(){
+        if(deck instanceof TestDeck)
+            System.out.println("Dealer draws...");
         draw(dealer, 2);
 
-        for(PlayerWithCards player : players)
+        for(Player player : players) {
+            if(deck instanceof TestDeck)
+                System.out.printf("%s draws...", player.name);
             draw(player, 2);
+            System.out.println(player.hand.cards.size());
+        }
 
         for(int i = 0; i < players.size(); i++){
             turn(players.get(i));
@@ -143,7 +121,7 @@ public class BlackJack extends Game {
     }
 
     @Override
-    protected void turn(PlayerWithCards activePlayer){
+    protected void turn(Player activePlayer){
         // TODO: make a list of hands for splits and iterate through it each turn
         CLI.cls();
         String name = activePlayer.name;
@@ -154,9 +132,9 @@ public class BlackJack extends Game {
         System.out.println("Would you like to place a (b)et or (l)eave the table?");
         System.out.print("̲bet or ̲leave ");
         switch(Input.getString("b", "l").toLowerCase()){
-            case "b" -> placeBet((BlackJackPlayer) activePlayer);
+            case "b" -> placeBet(activePlayer);
             case "l" -> {
-                leaveTable((BlackJackPlayer) activePlayer);
+                leaveTable(activePlayer);
                 return;
             }
         }
@@ -170,18 +148,18 @@ public class BlackJack extends Game {
             showHand(activePlayer);
 
             if(getHandValue(activePlayer) == 21 && activePlayer.hand.cards.size() == 2) {
-                blackjack((BlackJackPlayer) activePlayer);
+                blackjack(activePlayer);
                 standing = true;
             }
 
-            int playerBalance = ((BlackJackPlayer)activePlayer).getBalance();
-            int playerBet = ((BlackJackPlayer)activePlayer).getBet();
+            int playerBalance = activePlayer.getBalance();
+            int playerBet = activePlayer.getBet();
             String thisBalance = String.format("$%,d", playerBalance);
             String formattedBalance = playerBalance < 0 ? ANSI.RED + thisBalance + ANSI.RESET : thisBalance;
             System.out.printf("\ncurrent balance: $%,d (%s - $%,d)\n",
                     playerBalance - playerBet, formattedBalance, playerBet);
             System.out.printf("%16s $%,d + $%,d\n", "this bet:",
-                    playerBet, ((BlackJackPlayer) activePlayer).getBonus());
+                    playerBet, activePlayer.getBonus());
 
             String choice;
             if(standing)
@@ -205,7 +183,7 @@ public class BlackJack extends Game {
                     standing = hit(activePlayer) || getHandValue(activePlayer) == 21;
 
                     if(activePlayer.hand.cards.size() == 5 && getHandValue(activePlayer) <= 21) {
-                        fiveCardCharlie((BlackJackPlayer) activePlayer);
+                        fiveCardCharlie(activePlayer);
                         standing = true;
                     }
 
@@ -223,7 +201,7 @@ public class BlackJack extends Game {
                 case "d" -> {
                     System.out.println("\nDouble or nothing!");
 
-                    doubleDown((BlackJackPlayer) activePlayer);
+                    doubleDown(activePlayer);
                     standing = true;
                 }
                 case "bust" -> {
@@ -233,7 +211,7 @@ public class BlackJack extends Game {
                     standing = true;
                 }
                 case "l" -> {
-                    leaveTable((BlackJackPlayer) activePlayer);
+                    leaveTable(activePlayer);
 
                     standing = true;
                 }
@@ -241,7 +219,7 @@ public class BlackJack extends Game {
         }while(!standing);
     }
 
-    private void placeBet(BlackJackPlayer player){
+    private void placeBet(Player player){
         int loan = 1_000;
 
         if(player.getBalance() <= 0) {
@@ -260,7 +238,7 @@ public class BlackJack extends Game {
         player.setBet(bet);
     }
 
-    private void showHand(PlayerWithCards player){
+    private void showHand(Actor player){
         System.out.printf("\n%s%s cards:\n",
                 player.name, player.name.charAt(player.name.length() - 1) == 's' ? "'" : "'s");
 
@@ -271,7 +249,7 @@ public class BlackJack extends Game {
         System.out.printf("Hand score: %s\n", handScore == 21 ? ANSI.GREEN + handScore + ANSI.RESET : handScore);
     }
 
-    private boolean hit(PlayerWithCards player){
+    private boolean hit(Actor player){
         if(iNeedHelp){
             player.hand.addCard(((CheaterStandardDeck) deck).cheatDraw());
             iNeedHelp = false;
@@ -297,7 +275,7 @@ public class BlackJack extends Game {
         return false;
     }
 
-    private void doubleDown(BlackJackPlayer player){
+    private void doubleDown(Player player){
         player.setBet(player.getBet() * 2);
 
         System.out.printf("\n%-12s $%,d\n", "new bet:", player.getBet());
@@ -308,7 +286,7 @@ public class BlackJack extends Game {
             showHand(player);
     }
 
-    private void blackjack(BlackJackPlayer player){
+    private void blackjack(Player player){
         System.out.println("\nBlackJack! (x1.5 winnings)");
         player.setBonus((int)(player.getBet() * 0.5));
 
@@ -317,7 +295,7 @@ public class BlackJack extends Game {
         CLI.pause();
     }
 
-    private void fiveCardCharlie(BlackJackPlayer player){
+    private void fiveCardCharlie(Player player){
         System.out.println("\n5 Card Charlie! (5 to 1 winnings)");
         player.setBonus(player.getBet() * 4);
 
@@ -354,7 +332,7 @@ public class BlackJack extends Game {
         showHand(dealer);
         int dealerScore = getHandValue(dealer);
 
-        for(BlackJackPlayer player : players){
+        for(Player player : players){
             int bet = player.getBet();
             int bonus = player.getBonus();
             int score = getHandValue(player);
@@ -393,7 +371,7 @@ public class BlackJack extends Game {
             discard(card);
         }
 
-        for(PlayerWithCards player : players){
+        for(Actor player : players){
             while(player.hand.cards.size() > 0){
                 Card card = player.hand.getCard(0);
                 player.hand.removeCard(card);
@@ -402,7 +380,7 @@ public class BlackJack extends Game {
         }
     }
 
-    private void leaveTable(BlackJackPlayer player){
+    private void leaveTable(Player player){
         if(player.getBalance() >= 0)
             System.out.printf("\n%s has left the table with $%,d.\n", player.name, player.getBalance());
         else if(player.getBalance() <= -10_000)

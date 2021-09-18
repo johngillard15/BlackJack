@@ -1,7 +1,7 @@
 package com.game;
 
 import com.actors.Actor;
-import com.actors.PlayerWithCards;
+import com.actors.Player;
 import com.utilities.Input;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.List;
  */
 
 public abstract class Game {
-    protected List<Actor> players = new ArrayList<>();
+    protected List<Player> players = new ArrayList<>();
     public final int MIN_PLAYERS;
     public final int MAX_PLAYERS;
 
@@ -50,7 +50,7 @@ public abstract class Game {
 
             if(validName){
                 System.out.printf("Hello, %s.\n", name);
-                players.add(new PlayerWithCards(name));
+                players.add(new Player(name));
                 names.add(name);
             }
             else{
@@ -70,6 +70,6 @@ public abstract class Game {
 
     public abstract void play();
     protected abstract void round();
-    protected abstract void turn(PlayerWithCards activePlayer);
+    protected abstract void turn(Player activePlayer);
     protected abstract void displayResults();
 }
