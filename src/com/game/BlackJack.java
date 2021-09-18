@@ -18,7 +18,7 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.12.1
+ * @version 0.12.2
  */
 
 public class BlackJack extends Game {
@@ -165,14 +165,14 @@ public class BlackJack extends Game {
             if(standing)
                 choice = "s";
             else if(activePlayer.hand.cards.size() == 2){
-                System.out.println("\nWould you like to (h)it or (s)tand?");
-                System.out.print("̲hit, ̲stand "); // ̲
-                choice = Input.getString("h", "s", "psst dealer", "bust").toLowerCase();
-            }
-            else{
                 System.out.println("\nWould you like to (h)it, (s)tand, or (d)ouble down?");
                 System.out.print("̲hit, ̲stand, ̲double "); // ̲
                 choice = Input.getString("h", "s", "d", "psst dealer", "bust").toLowerCase();
+            }
+            else{
+                System.out.println("\nWould you like to (h)it or (s)tand?");
+                System.out.print("̲hit, ̲stand "); // ̲
+                choice = Input.getString("h", "s", "psst dealer", "bust").toLowerCase();
             }
 
             switch (choice) {
@@ -346,7 +346,7 @@ public class BlackJack extends Game {
                 System.out.printf("%s has won $%,d (total: $%,d)\n",
                         player.name, bet + bonus, player.getBalance());
             }
-            else if(score == dealerScore){
+            else if(score == dealerScore && !busted){
                 System.out.printf("%s Pushed\n", player.name);
                 player.pushed();
             }
