@@ -18,12 +18,11 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.12.2
+ * @version 0.12.3
  */
 
 public class BlackJack extends Game {
-    private final Deck deck; // TODO: multiple decks in blackjack? (new Blackjack Deck class maybe)
-    // TODO: ask for number of decks
+    private final Deck deck;
     // TODO: maybe make type Actor when betting moves to the hand
     // TODO: maybe make list of hands here then associate with player
 //    private final List<Hand> hands = new ArrayList<>();
@@ -62,8 +61,8 @@ public class BlackJack extends Game {
             handScore += getValue(card);
         }
 
-        while(aces > 0 && !(handScore + 10 > 21)){
-            handScore += 10;
+        while(aces > 0 && handScore > 21){
+            handScore -= 10;
             --aces;
         }
 
@@ -72,8 +71,7 @@ public class BlackJack extends Game {
 
     public static int getValue(Card card){
         return switch(card.value){
-            case "Ace" -> 1;
-            case "Jack", "Queen", "King" -> 10;
+            case "Ace", "Jack", "Queen", "King" -> 10;
             default -> Integer.parseInt(card.value);
         };
     }
