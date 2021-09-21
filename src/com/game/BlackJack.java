@@ -18,7 +18,7 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.12.3
+ * @version 0.12.4
  */
 
 public class BlackJack extends Game {
@@ -29,11 +29,12 @@ public class BlackJack extends Game {
     private final Dealer dealer = new Dealer();
     private boolean iNeedHelp = false;
     private boolean playerLeft = false;
+    private boolean dealerNaturalBlackjack = false;
 
     public BlackJack(){
-        super(1, 4);
+        super();
 
-        deck = new CheaterStandardDeck();
+        deck = new TestDeck();
         deck.shuffle();
 
         setup();
@@ -41,11 +42,6 @@ public class BlackJack extends Game {
 
     private void draw(Actor player){
         player.hand.addCard(deck.draw());
-    }
-
-    private void draw(Actor player, int count){
-        for(int i = 0; i < count; i++)
-            draw(player);
     }
 
     private void discard(Card card){
@@ -71,7 +67,8 @@ public class BlackJack extends Game {
 
     public static int getValue(Card card){
         return switch(card.value){
-            case "Ace", "Jack", "Queen", "King" -> 10;
+            case "Ace" -> 11;
+            case "Jack", "Queen", "King" -> 10;
             default -> Integer.parseInt(card.value);
         };
     }
@@ -90,13 +87,40 @@ public class BlackJack extends Game {
     protected void round(){
         if(deck instanceof TestDeck)
             System.out.println("Dealer draws...");
-        draw(dealer, 2);
+        for(int i = 0; i < 2; i++)
+            draw(dealer);
+
+        dealerNaturalBlackjack = getHandValue(dealer) == 21;
+
+        boolean newPlayers = true;
+        do{
+            System.out.println("\nAre there any new players at the table? (y/n)");
+            switch (Input.getString("y", "n", "yes", "no").toLowerCase()) {
+                case "y", "yes" -> {
+                    System.out.println("New player, what is your name?");
+                    players.add(new Player(Input.getString()));
+                }
+                case "n", "no" -> newPlayers = false;
+            }
+        }while(newPlayers);
+
+        for(int i = 0; i < players.size(); i++){
+            System.out.printf("\n%s, would you like to place a (b)et or (l)eave the table?\n", players.get(i).name);
+            System.out.print("̲bet or ̲leave ");
+            switch (Input.getString("b", "l").toLowerCase()) {
+                case "b" -> placeBet(players.get(i));
+                case "l" -> {
+                    leaveTable(players.get(i));
+                    --i;
+                }
+            }
+        }
 
         for(Player player : players) {
             if(deck instanceof TestDeck)
-                System.out.printf("%s draws...", player.name);
-            draw(player, 2);
-            System.out.println(player.hand.cards.size());
+                System.out.printf("%s draws...\n", player.name);
+            for(int i = 0; i < 2; i++)
+                draw(player);
         }
 
         for(int i = 0; i < players.size(); i++){
@@ -109,7 +133,7 @@ public class BlackJack extends Game {
         }
 
         if(players.size() > 0){
-            dealerTurn();
+            if(!dealerNaturalBlackjack) dealerTurn();
 
             displayResults();
 
@@ -119,52 +143,33 @@ public class BlackJack extends Game {
     }
 
     @Override
-    protected void turn(Player activePlayer){
+    protected void turn(Player player){
         // TODO: make a list of hands for splits and iterate through it each turn
         CLI.cls();
-        String name = activePlayer.name;
+        String name = player.name;
         System.out.printf("- %s%s turn -\n",
                 name, name.charAt(name.length() - 1) == 's' ? "'" : "'s");
         CLI.pause();
 
-        System.out.println("Would you like to place a (b)et or (l)eave the table?");
-        System.out.print("̲bet or ̲leave ");
-        switch(Input.getString("b", "l").toLowerCase()){
-            case "b" -> placeBet(activePlayer);
-            case "l" -> {
-                leaveTable(activePlayer);
-                return;
-            }
-        }
-
-        System.out.println("\nDealer:"); // TODO: end round if dealer starts with 21
+        System.out.println("\nDealer:");
         UI.showSideBySide(StandardDeck.getCardGUI(dealer.hand.cards.get(0)), StandardDeck.getBackCard());
         System.out.printf("Hand score: %s + ?\n", getValue(dealer.hand.cards.get(0)));
 
-        boolean standing = false;
+        boolean standing = dealerNaturalBlackjack;
         do{
-            showHand(activePlayer);
+            showHand(player);
 
-            if(getHandValue(activePlayer) == 21 && activePlayer.hand.cards.size() == 2) {
-                blackjack(activePlayer);
-                standing = true;
+            showWallet(player);
+
+            if(getHandValue(player) == 21 && player.hand.cards.size() == 2) {
+                blackjack(player);
+                return;
             }
 
-            int playerBalance = activePlayer.getBalance();
-            int playerBet = activePlayer.getBet();
-            String thisBalance = String.format("$%,d", playerBalance);
-            String formattedBalance = playerBalance < 0 ? ANSI.RED + thisBalance + ANSI.RESET : thisBalance;
-            System.out.printf("\ncurrent balance: $%,d (%s - $%,d)\n",
-                    playerBalance - playerBet, formattedBalance, playerBet);
-            System.out.printf("%16s $%,d + $%,d\n", "this bet:",
-                    playerBet, activePlayer.getBonus());
-
             String choice;
-            if(standing)
-                choice = "s";
-            else if(activePlayer.hand.cards.size() == 2){
+            if(player.hand.cards.size() == 2){
                 System.out.println("\nWould you like to (h)it, (s)tand, or (d)ouble down?");
-                System.out.print("̲hit, ̲stand, ̲double "); // ̲
+                System.out.print("̲hit, ̲stand, ̲double ");
                 choice = Input.getString("h", "s", "d", "psst dealer", "bust").toLowerCase();
             }
             else{
@@ -178,20 +183,15 @@ public class BlackJack extends Game {
                     if(deck instanceof CheaterStandardDeck && choice.equals("psst dealer")) iNeedHelp = true;
 
                     System.out.println("\nHit me!");
-                    standing = hit(activePlayer) || getHandValue(activePlayer) == 21;
+                    standing = hit(player) || getHandValue(player) == 21;
 
-                    if(activePlayer.hand.cards.size() == 5 && getHandValue(activePlayer) <= 21) {
-                        fiveCardCharlie(activePlayer);
+                    if(player.hand.cards.size() == 5 && getHandValue(player) <= 21) {
+                        fiveCardCharlie(player);
                         standing = true;
-                    }
-
-                    if(getHandValue(activePlayer) == 21){
-                        showHand(activePlayer);
-                        CLI.pause();
                     }
                 }
                 case "s" -> {
-                    System.out.printf("\n%s stands.\n", activePlayer.name);
+                    System.out.printf("\n%s stands.\n", player.name);
                     CLI.pause();
 
                     standing = true;
@@ -199,7 +199,7 @@ public class BlackJack extends Game {
                 case "d" -> {
                     System.out.println("\nDouble or nothing!");
 
-                    doubleDown(activePlayer);
+                    doubleDown(player);
                     standing = true;
                 }
                 case "bust" -> {
@@ -231,6 +231,17 @@ public class BlackJack extends Game {
         player.setBet(bet);
     }
 
+    private void showWallet(Player player){
+        int playerBalance = player.getBalance();
+        int playerBet = player.getBet();
+        String thisBalance = String.format("$%,d", playerBalance);
+        String formattedBalance = playerBalance < 0 ? ANSI.RED + thisBalance + ANSI.RESET : thisBalance;
+        System.out.printf("\ncurrent balance: $%,d (%s - $%,d)\n",
+                playerBalance - playerBet, formattedBalance, playerBet);
+        System.out.printf("%16s $%,d + $%,d\n", "this bet:",
+                playerBet, player.getBonus());
+    }
+
     private void showHand(Actor player){
         System.out.printf("\n%s%s cards:\n",
                 player.name, player.name.charAt(player.name.length() - 1) == 's' ? "'" : "'s");
@@ -238,8 +249,13 @@ public class BlackJack extends Game {
         player.hand.sortByValue();
         CardGUI.showHand(player.hand.cards);
 
-        int handScore = getHandValue(player);
-        System.out.printf("Hand score: %s\n", handScore == 21 ? ANSI.GREEN + handScore + ANSI.RESET : handScore);
+        String handScore = Integer.toString(getHandValue(player));
+        if(getHandValue(player) == 21)
+            handScore = ANSI.GREEN + getHandValue(player) + ANSI.RESET;
+        else if(getHandValue(player) > 21)
+            handScore = ANSI.RED + getHandValue(player) + ANSI.RESET;
+
+        System.out.printf("Hand score: %s\n", handScore);
     }
 
     private boolean hit(Actor player){
@@ -248,24 +264,24 @@ public class BlackJack extends Game {
             iNeedHelp = false;
         }
         else{
-            System.out.printf("\n%s draws...", player.name);
+            System.out.printf("\n%s draws...\n", player.name);
             draw(player);
         }
 
         System.out.println("\nNew card:");
         CardGUI.showCard(player.hand.getCard(player.hand.cards.size() - 1));
 
-        if(getHandValue(player) > 21){
-            showHand(player);
+
+        boolean busted = getHandValue(player) > 21;
+        if(busted)
             System.out.printf("\n%s Busts!\n", player.name);
-            CLI.pause();
 
-            return true;
-        }
-        else
-            CLI.pause();
+        if(busted || getHandValue(player) == 21)
+            showHand(player);
 
-        return false;
+        CLI.pause();
+
+        return busted;
     }
 
     private void doubleDown(Player player){
@@ -275,8 +291,10 @@ public class BlackJack extends Game {
         System.out.printf("new balance: $%,d ($%,d - $%,d)\n",
                 player.getBalance() - player.getBet(), player.getBalance(), player.getBet());
 
-        if(!hit(player))
+        if(!hit(player)){
             showHand(player);
+            CLI.pause();
+        }
     }
 
     private void blackjack(Player player){
@@ -323,6 +341,9 @@ public class BlackJack extends Game {
         System.out.println("\n- Round Results -\n");
 
         showHand(dealer);
+        if(dealerNaturalBlackjack)
+            System.out.println("\nDealer has BlackJack!");
+
         int dealerScore = getHandValue(dealer);
 
         for(Player player : players){
@@ -331,26 +352,40 @@ public class BlackJack extends Game {
             int score = getHandValue(player);
             boolean busted = score > 21;
             boolean fiveCardCharlie = player.hand.cards.size() == 5 && !busted;
+            boolean naturalBlackJack = score == 21 && player.hand.cards.size() == 2;
 
             boolean winner = !busted
-                    && (dealerScore > 21
-                    || (score > dealerScore || fiveCardCharlie));
+                    && !dealerNaturalBlackjack
+                    && (dealerScore > 21 || (fiveCardCharlie || naturalBlackJack || score > dealerScore));
+
+            String specialHand = fiveCardCharlie ? "(5 Card Charlie)"
+                    : naturalBlackJack ? "(BlackJack)"
+                        : "";
 
             System.out.printf("\n%s%s score: %,d %s\n",
                     player.name, player.name.charAt(player.name.length() - 1) == 's' ? "'" : "'s",
-                    getHandValue(player), fiveCardCharlie ? "(5 Card Charlie)" : "");
+                    getHandValue(player), specialHand);
+
             if(winner){
                 player.wonBet();
                 System.out.printf("%s has won $%,d (total: $%,d)\n",
                         player.name, bet + bonus, player.getBalance());
             }
-            else if(score == dealerScore && !busted){
-                System.out.printf("%s Pushed\n", player.name);
-                player.pushed();
+            else if(!busted && score == dealerScore){
+                if(dealerNaturalBlackjack && !naturalBlackJack){
+                    player.lostBet();
+                    System.out.printf("%s has lost $%,d (total: $%,d)\n",
+                            player.name, bet, player.getBalance());
+                }
+                else{
+                    player.pushed();
+                    System.out.printf("%s Pushed\n", player.name);
+                }
             }
             else{
                 player.lostBet();
-                System.out.printf("%s has lost $%,d (total: $%,d)\n", player.name, bet, player.getBalance());
+                System.out.printf("%s has lost $%,d (total: $%,d)\n",
+                        player.name, bet, player.getBalance());
             }
         }
 
