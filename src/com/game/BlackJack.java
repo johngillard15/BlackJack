@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.1.1
+ * @version 1.1.2
  */
 
 public class BlackJack extends Game {
@@ -145,11 +145,10 @@ public class BlackJack extends Game {
     private void placeBet(Player player){
         final int LOAN = 1_000;
 
-        if(player.getBalance() <= 0) {
+        if(player.getBalance() <= 0)
             System.out.print("\nThe casino has graciously lent you $1,000 to spend based on your situation.");
-        }
-        System.out.printf("\nbalance: $%,d %s\n",
-                player.getBalance(), player.getBalance() <= 0 ? "($1,000 loan)" : "");
+        System.out.printf("\nBalance: %s %s\n",
+                getFormattedBalance(player.getBalance()), player.getBalance() <= 0 ? "($1,000 loan)" : "");
         System.out.println("Place your bet:");
 
         int bet;
@@ -190,11 +189,10 @@ public class BlackJack extends Game {
                 for(Hand thisHand : player.hands)
                     totalBet += thisHand.getBet();
 
-                int playerBalance = player.getBalance();
-                String thisBalance = String.format("$%,d", playerBalance);
-                String formattedBalance = playerBalance < 0 ? ANSI.RED + thisBalance + ANSI.RESET : thisBalance;
-                System.out.printf("\ncurrent balance: $%,d (%s - $%,d)\n",
-                        playerBalance - totalBet, formattedBalance, totalBet);
+                System.out.printf("\ncurrent balance: %s (%s - $%,d)\n",
+                        getFormattedBalance(player.getBalance() - totalBet),
+                        getFormattedBalance(player.getBalance()),
+                        totalBet);
                 System.out.printf("%16s $%,d + $%,d\n", "this bet:",
                         hand.getBet(), hand.getBonus());
 
@@ -206,7 +204,7 @@ public class BlackJack extends Game {
                 canSplit = splittable(hand);
                 System.out.printf("\nWould you like to (h)it%s%s, or (s)tand?\n",
                         canSplit ? ", (split)" : "", canDouble ? ", (d)ouble down" : "");
-                System.out.printf("̲hit%s%s, ̲stand ", canSplit ? ", ̲stand" : "", canDouble ? ", ̲double" : "");
+                System.out.printf("̲hit%s%s, ̲stand ", canSplit ? ", ̲split" : "", canDouble ? ", ̲double" : "");
 
                 String choice;
                 if(canSplit && canDouble)
@@ -247,8 +245,10 @@ public class BlackJack extends Game {
                         System.out.println("\nDouble or nothing!");
 
                         doubleDown(hand);
-                        System.out.printf("new balance: $%,d ($%,d - $%,d)\n",
-                                player.getBalance() - totalBet, player.getBalance(), totalBet);
+                        System.out.printf("new balance: %s (%s - $%,d)\n",
+                                getFormattedBalance(player.getBalance() - totalBet),
+                                getFormattedBalance(player.getBalance()),
+                                totalBet);
 
                         standing = true;
                     }
@@ -269,9 +269,9 @@ public class BlackJack extends Game {
 
         String handScore = Integer.toString(getHandValue(hand));
         if(getHandValue(hand) == 21)
-            handScore = ANSI.GREEN + getHandValue(hand) + ANSI.RESET;
+            handScore = ANSI.GREEN + String.valueOf(getHandValue(hand)) + ANSI.RESET;
         else if(getHandValue(hand) > 21)
-            handScore = ANSI.RED + getHandValue(hand) + ANSI.RESET;
+            handScore = ANSI.RED + String.valueOf(getHandValue(hand)) + ANSI.RESET;
 
         System.out.printf("Hand score: %s\n", handScore);
     }
@@ -282,7 +282,6 @@ public class BlackJack extends Game {
             iNeedHelp = false;
         }
         else{
-//            System.out.printf("\n%s draws...\n", player.name);
             System.out.println("\nDrawing...");
             draw(hand);
         }
@@ -460,13 +459,21 @@ public class BlackJack extends Game {
                 }
             }
 
-            if(player.getBalance() != oldBalance)
-                System.out.printf("\nOld balance: $%,d\nNew balance: $%,d\n", oldBalance, player.getBalance());
+            if(player.getBalance() != oldBalance){
+                System.out.printf("\nOld balance: $%,d\nNew balance: %s\n",
+                        oldBalance, getFormattedBalance(player.getBalance()));
+            }
             else
-                System.out.printf("\nBalance: $%,d\n", player.getBalance());
+                System.out.printf("\nBalance: %s\n", getFormattedBalance(player.getBalance()));
 
             CLI.pause();
         }
+    }
+
+    private String getFormattedBalance(int balance){
+        return String.format("$%s",
+                balance < 0 ? ANSI.format(String.format("%,d", balance), ANSI.RED)
+                        : String.format("%,d", balance));
     }
 
     private void clearHand(Hand hand){

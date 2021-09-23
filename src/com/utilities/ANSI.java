@@ -1,59 +1,105 @@
 package com.utilities;
 
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
- * <p>This interface holds fields containing ANSI escape codes for colored text and backgrounds.</p>
+ * <p>This enum holds fields containing ANSI escape codes for colored text and backgrounds.</p>
  * <p>The method {@link ANSI#getCode(String)} accepts the name of an escape code and will return the desired code</p>
  *
  * @since 15/8/2021
  * @author John Gillard
  */
-public interface ANSI {
-    String RESET = "\u001B[0m";
-    String BLACK = "\u001B[30m";
-    String RED = "\u001B[31m";
-    String GREEN = "\u001B[32m";
-    String YELLOW = "\u001B[33m";
-    String BLUE = "\u001B[34m";
-    String PURPLE = "\u001B[35m";
-    String CYAN = "\u001B[36m";
-    String WHITE = "\u001B[37m";
-    String BLACK_BG = "\u001B[40m";
-    String RED_BG = "\u001B[41m";
-    String GREEN_BG = "\u001B[42m";
-    String YELLOW_BG = "\u001B[43m";
-    String BLUE_BG = "\u001B[44m";
-    String PURPLE_BG = "\u001B[45m";
-    String CYAN_BG = "\u001B[46m";
-    String WHITE_BG = "\u001B[47m";
+public enum ANSI {
+    RESET("\u001B[0m"),
+
+    BOLD("\u001B[1m")/* HIGH_INTENSITY */,
+    HIGH_INTENSITY("\u001B[1m"),
+    LOW_INTENSITY("\u001B[2m"),
+    ITALIC("\u001B[3m"),
+    UNDERLINE("\u001B[4m"),
+    INVERT("\u001B[7m"),
+
+    BLACK("\u001B[30m"),
+    BLUE("\u001B[34m"),
+    CYAN("\u001B[36m"),
+    GREEN("\u001B[32m"),
+    MAGENTA("\u001B[35m"),
+    RED("\u001B[31m"),
+    WHITE("\u001B[37m"),
+    YELLOW("\u001B[33m"),
+    GRAY("\u001B[90m")/* BLACK_BRIGHT */,
+    BLACK_BRIGHT("\u001B[90m"),
+    BLUE_BRIGHT("\u001B[94m"),
+    CYAN_BRIGHT("\u001B[96m"),
+    RED_BRIGHT("\u001B[91m"),
+    GREEN_BRIGHT("\u001B[92m"),
+    MAGENTA_BRIGHT("\u001B[95m"),
+    WHITE_BRIGHT("\u001B[97m"),
+    YELLOW_BRIGHT("\u001B[93m"),
+
+    BLACK_BG("\u001B[40m"),
+    BLUE_BG("\u001B[44m"),
+    CYAN_BG("\u001B[46m"),
+    GREEN_BG("\u001B[42m"),
+    MAGENTA_BG("\u001B[45m"),
+    RED_BG("\u001B[41m"),
+    WHITE_BG("\u001B[47m"),
+    YELLOW_BG("\u001B[43m"),
+    BLACK_BG_BRIGHT("\u001B[100m"),
+    BLUE_BG_BRIGHT("\u001B[104m"),
+    CYAN_BG_BRIGHT("\u001B[106m"),
+    GREEN_BG_BRIGHT("\u001B[102m"),
+    MAGENTA_BG_BRIGHT("\u001B[105m"),
+    RED_BG_BRIGHT("\u001B[101m"),
+    WHITE_BG_BRIGHT("\u001B[107m"),
+    YELLOW_BG_BRIGHT("\u001B[103m");
+
+    private final String code;
+
+    ANSI(String code){
+        this.code = code;
+    }
 
     /**
      * <p>Returns a String containing an ANSI escape code.</p>
      *
-     * @param code the name of the requested escape code
+     * @param color the name of the requested escape code
      * @return a String containing the escape code
      *
-     * @throws IllegalStateException if the requested code does not exist as a field in ANSI
+     * @throws NoSuchElementException if the requested code does not exist as a field in ANSI
      */
-    static String getCode(String code){
-        return switch(code.toUpperCase().trim()){
-            case "RESET" -> RESET;
-            case "BLACK" -> BLACK;
-            case "RED" -> RED;
-            case "GREEN" -> GREEN;
-            case "YELLOW" -> YELLOW;
-            case "BLUE" -> BLUE;
-            case "PURPLE" -> PURPLE;
-            case "CYAN" -> CYAN;
-            case "WHITE" -> WHITE;
-            case "BLACK_BG" -> BLACK_BG;
-            case "RED_BG" -> RED_BG;
-            case "GREEN_BG" -> GREEN_BG;
-            case "YELLOW_BG" -> YELLOW_BG;
-            case "BLUE_BG" -> BLUE_BG;
-            case "PURPLE_BG" -> PURPLE_BG;
-            case "CYAN_BG" -> CYAN_BG;
-            case "WHITE_BG" -> WHITE_BG;
-            default -> throw new IllegalStateException("Code \"" + code + "\" does not exist");
-        };
+    public static String getCode(String color){
+        Optional<ANSI> colorCode = Arrays.stream(ANSI.values())
+                .filter(x -> x.name().equals(color))
+                .findFirst();
+
+        if(colorCode.isPresent())
+            return colorCode.get().toString();
+        else
+            throw new NoSuchElementException("Code \"" + color + "\" does not exist.");
+    }
+
+    public static String format(String str, ANSI... codes) {
+        String formats = Arrays.stream(codes).map(ANSI::toString).collect(Collectors.joining());
+        return formats + str + RESET;
+    }
+    public static String format(String str, String... formatting){
+        String formats = Arrays.stream(formatting).map(ANSI::getCode).collect(Collectors.joining());
+        return formats + str + RESET;
+
+//        Function<String, String> reformatter = ANSI::getCode;
+//        return format(str, reformatter, formatting);
+    }
+//    public static String format(String str, Function<String, String> reformatter, String... stuff) {
+//        String formats = Arrays.stream(stuff).map(reformatter).collect(Collectors.joining());
+//        return formats + str + RESET;
+//    }
+
+    @Override
+    public String toString(){
+        return code;
     }
 }
