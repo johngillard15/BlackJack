@@ -1,6 +1,5 @@
 package com.card;
 
-import com.utilities.ANSI;
 import com.utilities.Input;
 
 import java.util.*;
@@ -102,12 +101,6 @@ public class StandardDeck implements Deck {
             top = valueFace + " ";
             bot = " " + valueFace;
         }
-
-//        if(card.suit.equals("Hearts") || card.suit.equals("Diamonds")){
-//            suitFace = ANSI.RED + suitFace + ANSI.RESET;
-//            top = ANSI.RED + top + ANSI.RESET;
-//            bot = ANSI.RED + bot + ANSI.RESET;
-//        }
 
         return String.format(formattedCard, top, suitFace, bot);
     }

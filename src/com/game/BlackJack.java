@@ -18,14 +18,13 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 0.12.4
+ * @version 0.12.5
  */
 
 public class BlackJack extends Game {
     private final Deck deck;
     // TODO: maybe make type Actor when betting moves to the hand
     // TODO: maybe make list of hands here then associate with player
-//    private final List<Hand> hands = new ArrayList<>();
     private final Dealer dealer = new Dealer();
     private boolean iNeedHelp = false;
     private boolean playerLeft = false;
@@ -34,18 +33,18 @@ public class BlackJack extends Game {
     public BlackJack(){
         super();
 
-        deck = new TestDeck();
+        deck = new CheaterStandardDeck();
         deck.shuffle();
 
         setup();
     }
 
-    private void draw(Actor player){
-        player.hand.addCard(deck.draw());
-    }
-
-    private void discard(Card card){
-        deck.discard(card);
+    public static int getValue(Card card){
+        return switch(card.value){
+            case "Ace" -> 11;
+            case "Jack", "Queen", "King" -> 10;
+            default -> Integer.parseInt(card.value);
+        };
     }
 
     private int getHandValue(Actor player){
@@ -65,12 +64,12 @@ public class BlackJack extends Game {
         return handScore;
     }
 
-    public static int getValue(Card card){
-        return switch(card.value){
-            case "Ace" -> 11;
-            case "Jack", "Queen", "King" -> 10;
-            default -> Integer.parseInt(card.value);
-        };
+    private void draw(Actor player){
+        player.hand.addCard(deck.draw());
+    }
+
+    private void discard(Card card){
+        deck.discard(card);
     }
 
     @Override
@@ -142,6 +141,25 @@ public class BlackJack extends Game {
         }
     }
 
+    private void placeBet(Player player){
+        int loan = 1_000;
+
+        if(player.getBalance() <= 0) {
+            System.out.print("\nThe casino has graciously lent you $1,000 to spend based on your situation.");
+        }
+        System.out.printf("\nbalance: $%,d %s\n",
+                player.getBalance(), player.getBalance() <= 0 ? "($1,000 loan)" : "");
+        System.out.println("Place your bet:");
+
+        int bet;
+        if(player.getBalance() > 0)
+            bet = (Input.getInt(0, player.getBalance()));
+        else
+            bet = (Input.getInt(0, loan));
+
+        player.setBet(bet);
+    }
+
     @Override
     protected void turn(Player player){
         // TODO: make a list of hands for splits and iterate through it each turn
@@ -210,25 +228,6 @@ public class BlackJack extends Game {
                 }
             }
         }while(!standing);
-    }
-
-    private void placeBet(Player player){
-        int loan = 1_000;
-
-        if(player.getBalance() <= 0) {
-            System.out.print("\nThe casino has graciously lent you $1,000 to spend based on your situation.");
-        }
-        System.out.printf("\nbalance: $%,d %s\n",
-                player.getBalance(), player.getBalance() <= 0 ? "($1,000 loan)" : "");
-        System.out.println("Place your bet:");
-
-        int bet;
-        if(player.getBalance() > 0)
-            bet = (Input.getInt(0, player.getBalance()));
-        else
-            bet = (Input.getInt(0, loan));
-
-        player.setBet(bet);
     }
 
     private void showWallet(Player player){
