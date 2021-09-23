@@ -10,6 +10,7 @@ import com.utilities.Input;
 import com.utilities.UI;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -21,7 +22,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 public class BlackJack extends Game {
@@ -177,7 +178,7 @@ public class BlackJack extends Game {
             int size;
 
 
-//                boolean canSplit = false;
+            boolean canSplit;
             boolean canDouble = true;
             boolean standing = false;
             do{
@@ -201,17 +202,21 @@ public class BlackJack extends Game {
                     blackjack(hand);
                     break;
                 }
-                String choice; // TODO: add checks to update canSplit
-                if(canDouble){
-                    System.out.println("\nWould you like to (h)it, (d)ouble down, or (s)tand?");
-                    System.out.print("̲hit, ̲double, ̲stand ");
-                    choice = Input.getString("h", "s", "d", "psst dealer", "bust", "split").toLowerCase();
-                }
-                else{
-                    System.out.println("\nWould you like to (h)it or (s)tand?");
-                    System.out.print("̲hit, ̲stand ");
-                    choice = Input.getString("h", "s", "psst dealer", "bust", "split").toLowerCase();
-                }
+
+                canSplit = splittable(hand);
+                System.out.printf("\nWould you like to (h)it%s%s, or (s)tand?\n",
+                        canSplit ? ", (split)" : "", canDouble ? ", (d)ouble down" : "");
+                System.out.printf("̲hit%s%s, ̲stand ", canSplit ? ", ̲stand" : "", canDouble ? ", ̲double" : "");
+
+                String choice;
+                if(canSplit && canDouble)
+                    choice = Input.getString("h", "split", "d", "s", "psst dealer", "bust").toLowerCase();
+                else if(canSplit)
+                    choice = Input.getString("h", "split", "s", "psst dealer", "bust").toLowerCase();
+                else if(canDouble)
+                    choice = Input.getString("h", "d", "s", "psst dealer", "bust").toLowerCase();
+                else
+                    choice = Input.getString("h", "s", "psst dealer", "bust").toLowerCase();
 
                 switch(choice){
                     case "h", "psst dealer" -> {
@@ -296,6 +301,21 @@ public class BlackJack extends Game {
         CLI.pause();
 
         return busted;
+    }
+
+    private boolean splittable(Hand hand){
+        HashMap<Integer, Integer> count = new HashMap<>();
+
+        for(Card card : hand.cards){
+            int value = getValue(card);
+
+            if(count.containsKey(value))
+                return true;
+            else
+                count.put(value, 1);
+        }
+
+        return false;
     }
 
     private void split(Player player, Hand firstHand){
@@ -415,7 +435,7 @@ public class BlackJack extends Game {
                         : "";
 
                 System.out.printf("Hand%s score: %,d %s\n",
-                        split ? " " + i : "", getHandValue(hand), specialHand);
+                        split ? " " + (i + 1) : "", getHandValue(hand), specialHand);
 
                 if(winner){
                     player.wonBet(hand);
