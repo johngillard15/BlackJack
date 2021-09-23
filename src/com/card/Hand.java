@@ -5,6 +5,28 @@ import java.util.List;
 
 public class Hand {
     public List<Card> cards = new ArrayList<>();
+    private int bet = 0;
+    private int bonus = 0;
+
+    public int getBet() {
+        return bet;
+    }
+
+    public void setBet(int bet) {
+        this.bet = bet;
+    }
+
+    public int getBonus(){
+        return bonus;
+    }
+
+    public void setBonus(int bonus){
+        this.bonus += bonus;
+    }
+
+    public void resetBet(){
+        bet = bonus = 0;
+    }
 
     public void addCard(Card card){
         cards.add(card);
