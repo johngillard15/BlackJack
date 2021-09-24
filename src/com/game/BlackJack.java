@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.2.0
+ * @version 1.2.1
  */
 
 public class BlackJack extends Game {
@@ -351,7 +351,7 @@ public class BlackJack extends Game {
 
         System.out.printf("\n%-12s $%,d\n", "new bet:", hand.getBet());
 
-        if(!hit(hand)){
+        if(!hit(hand) && getHandValue(hand) < 21){
             showHand(hand);
             CLI.pause();
         }
