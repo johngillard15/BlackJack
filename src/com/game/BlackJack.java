@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.1.2
+ * @version 1.2.0
  */
 
 public class BlackJack extends Game {
@@ -153,15 +153,15 @@ public class BlackJack extends Game {
 
         int bet;
         if(player.getBalance() > 0)
-            bet = (Input.getInt(0, player.getBalance()));
+            bet = (Input.getInt(1, player.getBalance()));
         else
-            bet = (Input.getInt(0, LOAN));
+            bet = (Input.getInt(1, LOAN));
 
         player.hands.get(0).setBet(bet);
     }
 
     @Override
-    protected void turn(Player player){ // TODO fix hand showing twice on a split 21
+    protected void turn(Player player){
         CLI.cls();
         String name = player.name;
         System.out.printf("- %s%s turn -\n",

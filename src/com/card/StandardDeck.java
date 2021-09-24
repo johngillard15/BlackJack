@@ -12,15 +12,17 @@ public class StandardDeck implements Deck {
             "Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"
     };
     protected List<Card> pile = new ArrayList<>();
+    public final int decks;
 
     public StandardDeck(){
         System.out.println("How many decks will be used?");
         System.out.print("decks ");
-        fillDeck(Input.getInt(1, 8));
+
+        fillDeck(this.decks = Input.getInt(1, 8));
     }
 
     public StandardDeck(int decks){
-        fillDeck(decks);
+        fillDeck(this.decks = decks);
     }
 
     protected void fillDeck(int decks){

@@ -17,13 +17,13 @@ public class TestDeck implements Deck{
 
     @Override
     public Card draw() {
-        System.out.println(Arrays.toString(SUITS));
-        System.out.println("Which suit? (1-4)");
-        int suitIndex = Input.getInt(1, SUITS.length) - 1;
-
         System.out.println(Arrays.toString(VALUES));
         System.out.println("Which value? (1-13)");
         int valueIndex = Input.getInt(1, VALUES.length) - 1;
+
+        System.out.println(Arrays.toString(SUITS));
+        System.out.println("Which suit? (1-4)");
+        int suitIndex = Input.getInt(1, SUITS.length) - 1;
 
         return new Card(SUITS[suitIndex], VALUES[valueIndex]);
     }
