@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.2.1
+ * @version 1.2.2
  */
 
 public class BlackJack extends Game {
@@ -146,7 +146,7 @@ public class BlackJack extends Game {
         final int LOAN = 1_000;
 
         if(player.getBalance() <= 0)
-            System.out.print("\nThe casino has graciously lent you $1,000 to spend based on your situation.");
+            System.out.printf("\nThe casino has graciously lent you $%,d to spend based on your situation.", LOAN);
         System.out.printf("\nBalance: %s %s\n",
                 getFormattedBalance(player.getBalance()), player.getBalance() <= 0 ? "($1,000 loan)" : "");
         System.out.println("Place your bet:");
