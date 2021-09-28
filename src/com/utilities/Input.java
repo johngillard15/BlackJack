@@ -113,7 +113,7 @@ public class Input {
      * @return a boolean, which determines whether the value can be converted to an Integer
      *
      * @throws NumberFormatException if the specified String value cannot be converted to an Integer (not really
-     * anymore but it did)
+     * anymore, but it did)
      */
     public static boolean checkInt(String checkMe){
         try{

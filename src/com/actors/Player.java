@@ -28,6 +28,14 @@ public class Player extends Actor {
         this.balance = balance;
     }
 
+    public void split(Hand splitHand){
+        hands.add(new Hand());
+        Hand newHand = hands.get(hands.size() - 1);
+
+        splitHand.setBet(splitHand.getBet() / 2);
+        newHand.setBet(splitHand.getBet());
+    }
+
     public void wonBet(Hand hand){
         balance += hand.getBet() + hand.getBonus();
         hand.resetBet();

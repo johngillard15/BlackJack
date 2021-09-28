@@ -9,10 +9,6 @@ import com.utilities.CLI;
 import com.utilities.Input;
 import com.utilities.UI;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 /**
  * <h1>BlackJack</h1>
  *
@@ -22,7 +18,7 @@ import java.util.List;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.2.2
+ * @version 1.3.0
  */
 
 public class BlackJack extends Game {
@@ -176,10 +172,10 @@ public class BlackJack extends Game {
             Hand hand = player.hands.get(i);
             int size;
 
-
-            boolean canSplit;
             boolean canDouble = true;
-            boolean standing = false;
+            boolean canSplit;
+            boolean splitWithAce = false;
+            boolean turnFinished = false;
             do{
                 size = player.hands.size();
                 System.out.printf("\nYour hand%s:\n", size > 1 ? " (" + (i + 1) + " of " + size + ")" : "");
@@ -196,50 +192,57 @@ public class BlackJack extends Game {
                 System.out.printf("%16s $%,d + $%,d\n", "this bet:",
                         hand.getBet(), hand.getBonus());
 
-                if(getHandValue(hand) == 21 && hand.cards.size() == 2) {
-                    blackjack(hand);
-                    break;
+                if(hand.cards.size() == 2) {
+                    if(getHandValue(hand) == 21){
+                        blackjack(hand);
+                        break;
+                    }
+
+                    if(size > 1){
+                        Hand newHand = player.hands.get(player.hands.size() - 1);
+                        if(hand.getCard(0).value.equals("Ace") && newHand.getCard(1).value.equals("Ace"))
+                            splitWithAce = true;
+                    }
                 }
 
                 canSplit = splittable(hand);
                 System.out.printf("\nWould you like to (h)it%s%s, or (s)tand?\n",
-                        canSplit ? ", (split)" : "", canDouble ? ", (d)ouble down" : "");
-                System.out.printf("̲hit%s%s, ̲stand ", canSplit ? ", ̲split" : "", canDouble ? ", ̲double" : "");
+                        canDouble ? ", (d)ouble down" : "", canDouble && canSplit ? ", (split)" : "");
+                System.out.printf("̲hit%s%s, ̲stand ", canDouble ? ", ̲double" : "", canDouble && canSplit ? ", ̲split" : "");
 
-                String choice;
-                if(canSplit && canDouble)
-                    choice = Input.getString("h", "split", "d", "s", "psst dealer", "bust").toLowerCase();
-                else if(canSplit)
-                    choice = Input.getString("h", "split", "s", "psst dealer", "bust").toLowerCase();
-                else if(canDouble)
-                    choice = Input.getString("h", "d", "s", "psst dealer", "bust").toLowerCase();
-                else
-                    choice = Input.getString("h", "s", "psst dealer", "bust").toLowerCase();
+                StringBuilder turnOptions = new StringBuilder("h--s--psst dealer--bust");
+                if(canDouble){
+                    turnOptions.append("--d");
+                    if(canSplit) turnOptions.append("--split");
+                }
 
+                String choice = Input.getString(turnOptions.toString().split("--")).toLowerCase();
                 switch(choice){
                     case "h", "psst dealer" -> {
                         if(deck instanceof CheaterStandardDeck && choice.equals("psst dealer")) iNeedHelp = true;
 
                         System.out.println("\nHit me!");
-                        standing = hit(hand) || getHandValue(hand) == 21;
+                        turnFinished = hit(hand) || getHandValue(hand) == 21;
 
-                        if(hand.cards.size() == 5 && getHandValue(hand) <= 21) {
-                            fiveCardCharlie(hand);
-                            standing = true;
+                        if(!turnFinished){
+                            if(splitWithAce){
+                                System.out.println("\nSplit with Ace; turn finished.");
+                                CLI.pause();
+                                turnFinished = true;
+                            }
+                            else if(hand.cards.size() == 5 && getHandValue(hand) <= 21) {
+                                fiveCardCharlie(hand);
+                                turnFinished = true;
+                            }
+                            else
+                                canDouble = false;
                         }
-
-                        canDouble = false;
                     }
                     case "s" -> {
                         System.out.printf("\n%s stands%s.\n", player.name, size > 1 ? " on hand " + (i + 1) : "");
                         CLI.pause();
 
-                        standing = true;
-                    }
-                    case "split" -> {
-                        split(player, hand);
-
-                        canDouble = false;
+                        turnFinished = true;
                     }
                     case "d" -> {
                         System.out.println("\nDouble or nothing!");
@@ -250,16 +253,24 @@ public class BlackJack extends Game {
                                 getFormattedBalance(player.getBalance()),
                                 totalBet);
 
-                        standing = true;
+                        turnFinished = true;
+                    }
+                    case "split" -> {
+                        split(player, hand);
+                        if(hand.getCard(0).value.equals("Ace") && hand.getCard(1).value.equals("Ace")){
+                            System.out.println("\nSplit with Ace; turn finished.");
+                            CLI.pause();
+                            turnFinished = true;
+                        }
                     }
                     case "bust" -> {
                         System.out.println("\nBust! :)");
                         CLI.pause();
 
-                        standing = true;
+                        turnFinished = true;
                     }
                 }
-            }while(!standing);
+            }while(!turnFinished);
         }
     }
 
@@ -303,47 +314,18 @@ public class BlackJack extends Game {
     }
 
     private boolean splittable(Hand hand){
-        HashMap<Integer, Integer> count = new HashMap<>();
-
-        for(Card card : hand.cards){
-            int value = getValue(card);
-
-            if(count.containsKey(value))
-                return true;
-            else
-                count.put(value, 1);
-        }
-
-        return false;
+        return getValue(hand.getCard(0)) == getValue(hand.getCard(1));
     }
 
     private void split(Player player, Hand firstHand){
-        List<Hand> hands = player.hands;
-        int splitIndex = hands.indexOf(firstHand) + 1;
-        hands.add(splitIndex, new Hand());
-        Hand splitHand = hands.get(splitIndex);
+        player.split(firstHand);
+        Hand newHand = player.hands.get(player.hands.size() - 1);
 
-        Card splitCard = null;
-        for(Card card1 : firstHand.cards){
-            List<Card> tempList = new ArrayList<>(firstHand.cards);
-            tempList.remove(card1);
+        newHand.addCard(firstHand.getCard(0));
+        firstHand.removeCard(0);
 
-            for(Card card2 : tempList){
-                if(getValue(card2) == getValue(card1)){
-                    splitCard = card2;
-                    break;
-                }
-            }
-
-            if(splitCard != null)
-                break;
-        }
-
-        splitHand.addCard(splitCard);
-        firstHand.removeCard(splitCard);
-
-        firstHand.setBet(firstHand.getBet() / 2);
-        splitHand.setBet(firstHand.getBet());
+        newHand.addCard(deck.draw());
+        firstHand.addCard(deck.draw());
     }
 
     private void doubleDown(Hand hand){
