@@ -32,7 +32,6 @@ public class Player extends Actor {
         hands.add(new Hand());
         Hand newHand = hands.get(hands.size() - 1);
 
-        splitHand.setBet(splitHand.getBet() / 2);
         newHand.setBet(splitHand.getBet());
     }
 

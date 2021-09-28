@@ -18,7 +18,7 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.3.0
+ * @version 1.4.0
  */
 
 public class BlackJack extends Game {
@@ -30,7 +30,7 @@ public class BlackJack extends Game {
     public BlackJack(){
         super();
 
-        deck = new CheaterStandardDeck();
+        deck = new TestDeck();
         deck.shuffle();
 
         setup();
@@ -174,16 +174,13 @@ public class BlackJack extends Game {
 
             boolean canDouble = true;
             boolean canSplit;
-            boolean splitWithAce = false;
             boolean turnFinished = false;
             do{
                 size = player.hands.size();
                 System.out.printf("\nYour hand%s:\n", size > 1 ? " (" + (i + 1) + " of " + size + ")" : "");
                 showHand(hand);
 
-                int totalBet = 0;
-                for(Hand thisHand : player.hands)
-                    totalBet += thisHand.getBet();
+                int totalBet = getTotalBet(player);
 
                 System.out.printf("\ncurrent balance: %s (%s - $%,d)\n",
                         getFormattedBalance(player.getBalance() - totalBet),
@@ -192,20 +189,27 @@ public class BlackJack extends Game {
                 System.out.printf("%16s $%,d + $%,d\n", "this bet:",
                         hand.getBet(), hand.getBonus());
 
-                if(hand.cards.size() == 2) {
-                    if(getHandValue(hand) == 21){
+                if(hand.cards.size() == 2){
+                    if(size == 1 && getHandValue(hand) == 21){
                         blackjack(hand);
                         break;
                     }
 
+                    if(getHandValue(hand) == 21){
+                        CLI.pause();
+                        break;
+                    }
+
                     if(size > 1){
-                        Hand newHand = player.hands.get(player.hands.size() - 1);
-                        if(hand.getCard(0).value.equals("Ace") && newHand.getCard(1).value.equals("Ace"))
-                            splitWithAce = true;
+                        if(hand.getCard(0).value.equals("Ace")){
+                            System.out.println("\nSplit with Ace; turn finished.");
+                            CLI.pause();
+                            break;
+                        }
                     }
                 }
 
-                canSplit = splittable(hand);
+                canSplit = size <= 4 && splittable(hand);
                 System.out.printf("\nWould you like to (h)it%s%s, or (s)tand?\n",
                         canDouble ? ", (d)ouble down" : "", canDouble && canSplit ? ", (split)" : "");
                 System.out.printf("̲hit%s%s, ̲stand ", canDouble ? ", ̲double" : "", canDouble && canSplit ? ", ̲split" : "");
@@ -225,12 +229,7 @@ public class BlackJack extends Game {
                         turnFinished = hit(hand) || getHandValue(hand) == 21;
 
                         if(!turnFinished){
-                            if(splitWithAce){
-                                System.out.println("\nSplit with Ace; turn finished.");
-                                CLI.pause();
-                                turnFinished = true;
-                            }
-                            else if(hand.cards.size() == 5 && getHandValue(hand) <= 21) {
+                            if(hand.cards.size() == 5 && getHandValue(hand) <= 21) {
                                 fiveCardCharlie(hand);
                                 turnFinished = true;
                             }
@@ -248,6 +247,7 @@ public class BlackJack extends Game {
                         System.out.println("\nDouble or nothing!");
 
                         doubleDown(hand);
+                        totalBet = getTotalBet(player);
                         System.out.printf("new balance: %s (%s - $%,d)\n",
                                 getFormattedBalance(player.getBalance() - totalBet),
                                 getFormattedBalance(player.getBalance()),
@@ -257,7 +257,8 @@ public class BlackJack extends Game {
                     }
                     case "split" -> {
                         split(player, hand);
-                        if(hand.getCard(0).value.equals("Ace") && hand.getCard(1).value.equals("Ace")){
+                        if(hand.getCard(0).value.equals("Ace")){
+                            showHand(hand);
                             System.out.println("\nSplit with Ace; turn finished.");
                             CLI.pause();
                             turnFinished = true;
@@ -274,8 +275,16 @@ public class BlackJack extends Game {
         }
     }
 
+    private int getTotalBet(Player player){
+        int totalBet = 0;
+
+        for(Hand thisHand : player.hands)
+            totalBet += thisHand.getBet();
+
+        return totalBet;
+    }
+
     private void showHand(Hand hand){
-        hand.sortByValue();
         CardGUI.showHand(hand.cards);
 
         String handScore = Integer.toString(getHandValue(hand));
@@ -324,8 +333,8 @@ public class BlackJack extends Game {
         newHand.addCard(firstHand.getCard(0));
         firstHand.removeCard(0);
 
-        newHand.addCard(deck.draw());
         firstHand.addCard(deck.draw());
+        newHand.addCard(deck.draw());
     }
 
     private void doubleDown(Hand hand){
