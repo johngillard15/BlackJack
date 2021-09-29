@@ -18,7 +18,7 @@ import com.utilities.UI;
  *
  * @since 10/9/2021
  * @author John Gilard
- * @version 1.4.0
+ * @version 1.4.1
  */
 
 public class BlackJack extends Game {
@@ -209,7 +209,7 @@ public class BlackJack extends Game {
                     }
                 }
 
-                canSplit = size <= 4 && splittable(hand);
+                canSplit = size < 4 && splittable(hand);
                 System.out.printf("\nWould you like to (h)it%s%s, or (s)tand?\n",
                         canDouble ? ", (d)ouble down" : "", canDouble && canSplit ? ", (split)" : "");
                 System.out.printf("̲hit%s%s, ̲stand ", canDouble ? ", ̲double" : "", canDouble && canSplit ? ", ̲split" : "");
@@ -247,6 +247,7 @@ public class BlackJack extends Game {
                         System.out.println("\nDouble or nothing!");
 
                         doubleDown(hand);
+
                         totalBet = getTotalBet(player);
                         System.out.printf("new balance: %s (%s - $%,d)\n",
                                 getFormattedBalance(player.getBalance() - totalBet),
